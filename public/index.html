@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Copilot Chat Demo Task App</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 760px;
+      margin: 40px auto;
+      line-height: 1.6;
+    }
+
+    input {
+      padding: 8px;
+      width: 70%;
+    }
+
+    button {
+      padding: 8px 12px;
+      margin-left: 4px;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    .done {
+      text-decoration: line-through;
+      color: #777;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>タスク管理デモ</h1>
+
+  <section>
+    <h2>タスク追加</h2>
+    <input id="taskTitle" placeholder="タスク名を入力" />
+    <button onclick="addTask()">追加</button>
+  </section>
+
+  <section>
+    <h2>検索</h2>
+    <input id="searchText" placeholder="検索キーワード" />
+    <button onclick="searchTasks()">検索</button>
+    <button onclick="loadTasks()">全件表示</button>
+  </section>
+
+  <p id="message" class="error"></p>
+
+  <ul id="taskList"></ul>
+
+  <script>
+    async function loadTasks() {
+      const response = await fetch("/api/tasks");
+      const tasks = await response.json();
+      renderTasks(tasks);
+    }
+
+    async function addTask() {
+      const title = document.getElementById("taskTitle").value;
+
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title: title })
+      });
+
+      const task = await response.json();
+
+      document.getElementById("taskTitle").value = "";
+      loadTasks();
+    }
+
+    async function toggleTask(id) {
+      await fetch("/api/tasks/" + id + "/toggle", {
+        method: "PATCH"
+      });
+
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch("/api/tasks/" + id, {
+        method: "DELETE"
+      });
+
+      loadTasks();
+    }
+
+    async function searchTasks() {
+      const keyword = document.getElementById("searchText").value;
+
+      const response = await fetch("/api/search?q=" + keyword);
+      const tasks = await response.json();
+
+      renderTasks(tasks);
+    }
+
+    function renderTasks(tasks) {
+      const list = document.getElementById("taskList");
+      list.innerHTML = "";
+
+      for (const task of tasks) {
+        const li = document.createElement("li");
+
+        // Intentionally unsafe rendering for demo.
+        li.innerHTML = `
+          <span class="${task.done ? "done" : ""}">
+            ${task.title}
+          </span>
+          <button onclick="toggleTask(${task.id})">完了切替</button>
+          <button onclick="deleteTask(${task.id})">削除</button>
+        `;
+
+        list.appendChild(li);
+      }
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>

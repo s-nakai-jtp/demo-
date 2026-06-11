@@ -1,0 +1,12 @@
+{
+  "name": "copilot-demo-app",
+  "version": "1.0.0",
+  "description": "A small intentionally flawed web app for GitHub Copilot Chat refactoring demo",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.3"
+  }
+}
